@@ -136,8 +136,8 @@ export default async function ProductDetailPage({
               />
 
               <p className="mt-3 text-xs text-corporate-muted">
-                Оплата картой через ЮKassa после оформления заказа. Чек самозанятого
-                автоматом через ФНС «Мой налог».
+                Оплата картой через ЮKassa после оформления заказа. Фискальный
+                чек по 54-ФЗ — автоматически на email/телефон.
               </p>
             </div>
 

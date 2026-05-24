@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Logo } from '@/components/layout/Logo';
+import { LEGAL } from '@/lib/legal';
 
 export function Footer() {
   return (
@@ -41,9 +42,9 @@ export function Footer() {
         <div>
           <div className="mb-3 font-semibold text-gold">Реквизиты</div>
           <ul className="space-y-1 text-sm text-white/70">
-            <li>Самозанятый</li>
-            <li>Рязапов Ильдар Маратович</li>
-            <li>ИНН 632406615124</li>
+            <li>{LEGAL.status}</li>
+            <li>{LEGAL.fullName}</li>
+            <li>ИНН {LEGAL.inn}</li>
           </ul>
           <div className="mb-2 mt-4 font-semibold text-gold">Документы</div>
           <ul className="space-y-2 text-sm text-white/80">

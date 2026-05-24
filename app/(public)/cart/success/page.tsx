@@ -22,8 +22,8 @@ export default function PaymentSuccessPage({
         </div>
         <h1 className="mb-3">Спасибо за покупку!</h1>
         <p className="mb-2 text-corporate-gray">
-          Оплата прошла успешно. Чек самозанятого пришлём на ваш телефон через
-          сервис «Мой налог» ФНС России.
+          Оплата прошла успешно. Фискальный чек по 54-ФЗ придёт на ваш телефон
+          или email от оператора фискальных данных.
         </p>
         {order && (
           <p className="mb-6 text-sm text-corporate-muted">

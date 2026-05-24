@@ -1,6 +1,7 @@
 import { MapPin, Phone, Clock } from 'lucide-react';
+import { LEGAL } from '@/lib/legal';
 
-const ADDRESS = 'Москва, ул. Липчанского, д. 1';
+const ADDRESS = LEGAL.pickupAddress;
 const MAP_QUERY = encodeURIComponent(ADDRESS);
 
 export function LocationSection() {
@@ -47,7 +48,7 @@ export function LocationSection() {
                   Режим работы
                 </div>
                 <div className="text-base font-semibold text-corporate-dark">
-                  Ежедневно 10:00 – 21:00
+                  {LEGAL.workingHours}
                 </div>
                 <div className="text-sm text-corporate-gray">Без выходных и праздников</div>
               </div>
@@ -62,10 +63,10 @@ export function LocationSection() {
                   Телефон
                 </div>
                 <a
-                  href="tel:+79680952288"
+                  href={LEGAL.phoneRaw}
                   className="text-base font-semibold text-corporate-dark hover:text-gold"
                 >
-                  +7 (968) 095-22-88
+                  {LEGAL.phone}
                 </a>
                 <div className="text-sm text-corporate-gray">Звонок бесплатный</div>
               </div>

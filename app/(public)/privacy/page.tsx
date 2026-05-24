@@ -19,7 +19,7 @@ export default function PrivacyPage() {
         <div className="space-y-6 text-sm leading-relaxed text-corporate-gray">
           <p>
             Настоящая Политика описывает порядок обработки персональных данных
-            самозанятым {LEGAL.fullName}, ИНН {LEGAL.inn} (далее — «Оператор»),
+            индивидуальным предпринимателем {LEGAL.fullName}, ИНН {LEGAL.inn} (далее — «Оператор»),
             пользователей сайта (далее — «Пользователь»), в соответствии
             с Федеральным законом № 152-ФЗ «О персональных данных».
           </p>

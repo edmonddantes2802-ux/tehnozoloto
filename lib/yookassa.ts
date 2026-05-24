@@ -71,9 +71,9 @@ export async function createPayment(
     metadata: input.metadata,
   };
 
-  // Чек самозанятого через ФНС («Мой налог») — формируется ЮKassa автоматически,
-  // если в ЛК подключена интеграция «Самозанятость». Здесь мы лишь передаём
-  // плательщика, чтобы чек ушёл на его email/телефон.
+  // Фискальный чек по 54-ФЗ — формируется ЮKassa автоматически, если в ЛК
+  // подключена онлайн-касса (Атол.Онлайн / ОФД и т.п.). Здесь мы лишь
+  // передаём плательщика, чтобы чек ушёл на его email/телефон.
   if (input.customerEmail || input.customerPhone) {
     body.receipt = {
       customer: {
@@ -85,7 +85,7 @@ export async function createPayment(
           description: input.description.slice(0, 128),
           quantity: '1.00',
           amount: { value: input.amount.toFixed(2), currency: 'RUB' },
-          vat_code: 1, // НДС не облагается (самозанятый)
+          vat_code: 1, // 1 = без НДС (ИП на УСН/патент); измените под свою систему налогообложения
           payment_subject: 'commodity',
           payment_mode: 'full_payment',
         },
