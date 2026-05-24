@@ -14,6 +14,7 @@ async function loadFeatured(): Promise<ProductRow[]> {
       .from('products')
       .select('*')
       .eq('is_sold', false)
+      .eq('is_published', true)
       .order('created_at', { ascending: false })
       .limit(4);
     if (data && data.length > 0) return data as ProductRow[];
@@ -44,26 +45,32 @@ export async function ShowcaseGrid() {
           {products.map((p) => (
             <article
               key={p.id}
-              className="group overflow-hidden rounded-card border border-corporate-border bg-white shadow-card-rest transition-shadow hover:shadow-card-hover"
+              className="group flex flex-col overflow-hidden rounded-card border border-corporate-border bg-white shadow-card-rest transition-shadow hover:shadow-card-hover"
             >
-              <div className="relative aspect-[4/3] overflow-hidden bg-corporate-bg">
-                {p.condition === 'new' && (
-                  <span className="absolute left-3 top-3 z-10 rounded bg-success px-2 py-1 text-xs font-bold text-white">
-                    НОВИНКА
-                  </span>
-                )}
-                <ProductImage
-                  productId={p.id}
-                  fallbackUrl={p.images[0]}
-                  alt={p.title}
-                  className="transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
-              <div className="flex flex-1 flex-col p-5">
-                <h3 className="mb-1 text-base font-semibold">{p.title}</h3>
-                <div className="mb-4 line-clamp-2 text-xs text-corporate-muted">
-                  {p.description}
+              <Link href={`/catalog/${p.id}`} className="block">
+                <div className="relative aspect-[4/3] overflow-hidden bg-corporate-bg">
+                  {p.condition === 'new' && (
+                    <span className="absolute left-3 top-3 z-10 rounded bg-success px-2 py-1 text-xs font-bold text-white">
+                      НОВИНКА
+                    </span>
+                  )}
+                  <ProductImage
+                    productId={p.id}
+                    fallbackUrl={p.images[0]}
+                    alt={p.title}
+                    className="transition-transform duration-500 group-hover:scale-105"
+                  />
                 </div>
+              </Link>
+              <div className="flex flex-1 flex-col p-5">
+                <Link href={`/catalog/${p.id}`} className="block">
+                  <h3 className="mb-1 text-base font-semibold hover:text-gold">
+                    {p.title}
+                  </h3>
+                  <div className="mb-4 line-clamp-2 text-xs text-corporate-muted">
+                    {p.description}
+                  </div>
+                </Link>
                 <div className="mb-4 mt-auto text-xl font-bold text-primary">
                   {formatRub(p.price)}
                 </div>

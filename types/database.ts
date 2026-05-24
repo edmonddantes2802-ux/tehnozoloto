@@ -27,6 +27,12 @@ export interface LeadRow {
   utm_campaign: string | null;
 }
 
+export interface ProductSpecs {
+  // Свободная карта характеристик. Ключ — короткое название поля по-русски,
+  // значение — строка/число. Примеры ключей: "Чип", "RAM", "Хранилище", "Экран".
+  [key: string]: string | number | null;
+}
+
 export interface ProductRow {
   id: string;
   title: string;
@@ -37,6 +43,9 @@ export interface ProductRow {
   images: string[];
   condition: ProductCondition | null;
   is_sold: boolean;
+  is_published: boolean;
+  specs: ProductSpecs | null;
+  battery_health: number | null;
   created_at: string;
 }
 

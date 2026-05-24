@@ -1,10 +1,13 @@
+import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
+import { Package } from 'lucide-react';
 import {
   adminSelect,
   adminUpdate,
   isAdminConfigured,
 } from '@/lib/supabase/rest';
 import { formatRub } from '@/lib/utils';
+import { Button } from '@/components/shared/Button';
 import { AdminPriceRow } from './AdminPriceRow';
 import { AdminMarkSoldButton } from './AdminMarkSoldButton';
 import type { GoldPriceRow, LeadRow } from '@/types/database';
@@ -99,7 +102,14 @@ export default async function AdminPage() {
 
   return (
     <div className="container-corp py-12">
-      <h1 className="mb-8">Админ-панель</h1>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+        <h1>Админ-панель</h1>
+        <Link href="/admin/products">
+          <Button>
+            <Package size={18} className="mr-1" /> Управление товарами
+          </Button>
+        </Link>
+      </div>
 
       {!configured && (
         <div className="mb-8 rounded-card border border-warning/40 bg-warning/10 p-4 text-sm text-warning">

@@ -159,6 +159,9 @@ const TEST_PRODUCTS: ProductRow[] = Array.from({ length: 5 }, (_, i) => {
     images: [],
     condition: 'good',
     is_sold: false,
+    is_published: true,
+    specs: null,
+    battery_health: null,
     created_at: '',
   };
 });
@@ -176,6 +179,9 @@ export const PRODUCTS: ProductRow[] = [
       images: [pickImage(id, d.title)],
       condition: d.condition ?? 'excellent',
       is_sold: false,
+      is_published: true,
+      specs: null,
+      battery_health: null,
       created_at: '',
     };
   }),
