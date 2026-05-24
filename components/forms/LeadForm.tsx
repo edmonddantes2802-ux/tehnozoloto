@@ -26,6 +26,8 @@ export function LeadForm({ category, estimatedValue, details }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<LeadInput>({
     resolver: zodResolver(leadSchema),
+    mode: 'onBlur',
+    reValidateMode: 'onBlur',
     defaultValues: {
       category,
       estimated_value: estimatedValue,
@@ -118,7 +120,8 @@ export function LeadForm({ category, estimatedValue, details }: Props) {
             <IMaskInput
               mask="+7 (000) 000-00-00"
               value={field.value ?? ''}
-              onAccept={(val: string) => field.onChange(normalizePhone(val))}
+              onAccept={(val: string) => field.onChange(val)}
+              onBlur={field.onBlur}
               placeholder="+7 (999) 000-00-00"
               className={cn(
                 'h-12 w-full rounded-corp border bg-white px-4 text-base outline-none',
@@ -128,7 +131,9 @@ export function LeadForm({ category, estimatedValue, details }: Props) {
             />
           )}
         />
-        {errors.phone && <p className="mt-1 text-sm text-danger">{errors.phone.message}</p>}
+        <p className="mt-1 min-h-[1.25rem] text-sm text-danger">
+          {errors.phone?.message ?? ''}
+        </p>
       </div>
 
       {/* honeypot */}

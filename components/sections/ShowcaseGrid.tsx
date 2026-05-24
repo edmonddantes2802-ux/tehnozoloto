@@ -15,12 +15,12 @@ async function loadFeatured(): Promise<ProductRow[]> {
       .select('*')
       .eq('is_sold', false)
       .order('created_at', { ascending: false })
-      .limit(12);
+      .limit(4);
     if (data && data.length > 0) return data as ProductRow[];
   } catch {
     // supabase not configured locally — fallback to mock
   }
-  return FEATURED_PRODUCTS;
+  return FEATURED_PRODUCTS.slice(0, 4);
 }
 
 export async function ShowcaseGrid() {
@@ -40,7 +40,7 @@ export async function ShowcaseGrid() {
           </Link>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((p) => (
             <article
               key={p.id}

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { leadSchema } from '@/lib/validators';
 
 const rateLimitMap = new Map<string, number[]>();
@@ -42,8 +42,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    const supabase = createSupabaseServerClient();
-    const { error } = await supabase.from('leads').insert({
+    const admin = createSupabaseAdminClient();
+    if (!admin) {
+      console.warn('[leads.insert] SUPABASE_SERVICE_ROLE_KEY not set — lead not persisted');
+      // Не блокируем пользователя: лид всё равно дойдёт через Telegram/CRM
+      return NextResponse.json({ ok: true, persisted: false });
+    }
+
+    const { error } = await admin.from('leads').insert({
       full_name: parsed.data.full_name,
       phone: parsed.data.phone,
       category: parsed.data.category,
