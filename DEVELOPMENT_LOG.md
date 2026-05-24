@@ -384,3 +384,158 @@ placeholder'ом + 5 тестовых с красным = 63 видимых то
   на проде — Database Webhook не настроен.
 - В админке нет пагинации; при росте заказов 50+ нужно добавить.
 - IP-whitelist для webhook ЮKassa не реализован — добавить перед прод-запуском.
+- AI-автозаполнение (`lib/ai-autofill.ts`) использует обычный fetch без
+  прокси-обёртки. На прод-сервере в РФ запросы к Anthropic/OpenAI режутся
+  геоблоком. Решения: прокси-обёртка через undici или переход на
+  proxyapi.ru / YandexGPT / GigaChat.
+
+---
+
+## Релиз v2.0 — «полный CRUD товаров с админкой» (2026-05-24)
+
+Большой скачок от v1.0. Что добавлено за период между v1.0 и v2.0
+(commits `23b25cb` → `d69d8d0`, всего 13 коммитов):
+
+### Этап 16. Полная админка управления товарами
+
+Появилась настоящая админ-форма создания и редактирования товара —
+больше не нужно править preset/migrations в коде. Что включает форма
+(`app/admin/products/`):
+
+- **Список товаров** `/admin/products` с фильтрами по статусу
+  (все / опубликованные / черновики / проданные), поиском по названию,
+  кнопками «Редактировать» и «Удалить» (soft-delete через `is_sold +
+  is_published`).
+- **Форма создания/редактирования** `ProductForm.tsx` со всеми блоками:
+  - **Title autocomplete** — при наборе подсказывает модели из preset
+    с фильтрацией по выбранной категории и бренду.
+  - **BrandPicker** — топ-10 брендов чипсами для категории + спойлер
+    «Другие бренды» с полным списком + кнопка «Указать свой бренд».
+  - **Drag-and-drop загрузка фото** с автоматическим ресайзом до
+    1920×1920 px и сжатием до JPEG quality 88. Прямая загрузка в
+    Supabase Storage из браузера (минуя сервер). До 10 фото, drag для
+    смены порядка, первое = обложка.
+  - **Комплектность** с пресет-чипсами по 35 категориям
+    (`lib/preset-complectation.ts`) + ручное добавление.
+  - **Характеристики** — свободные пары «параметр → значение» + парсер
+    из текста.
+  - **Battery state** — свободная строка (85%, или 500 циклов, или
+    «10000 mAh из 19000»).
+  - Чекбокс **«Опубликовать»** — товар в черновиках не виден в каталоге.
+
+### Этап 17. Парсер характеристик из текста
+
+`lib/parse-specs.ts` + `SpecsParserModal.tsx`. Менеджер копирует блок
+характеристик с DNS/Авито/M.Video/Озон/Яндекс.Маркет, парсер
+автоматически раскладывает на пары. Поддерживает 5 форматов
+(построчный, inline в одной строке, через таб, тире, двоеточие).
+Чёрный список из ~100 слов (бренды, единицы, термины) исключает
+ложные разрезы типа «Видеокарта = UHD / Graphics = ...». Точность
+85-95% на типовых сайтах, остальное правится в превью модалки.
+
+### Этап 18. AI-автозаполнение
+
+`lib/ai-autofill.ts` + `app/api/admin/ai-autofill/route.ts`. Кнопка
+**✨ Распознать AI** над полем «Название». Менеджер вводит любую
+модель («ASUS X550J 8GB 1TB»), AI возвращает title / brand / category
+/ description / specs. Поддерживается Anthropic Claude (приоритет)
+и OpenAI как fallback. Активируется env-переменными `ANTHROPIC_API_KEY`
+или `OPENAI_API_KEY`. Без ключей кнопка показывает ошибку.
+
+### Этап 19. Расширенная preset-база
+
+`lib/preset-models.ts` + `preset-models-extended.ts` — теперь ~370
+моделей: все ходовые iPhone (включая старые SE/6S/7/8/X), Samsung
+Galaxy (включая S8/S9/S10/Note), Xiaomi/POCO/Redmi, Pixel, Honor,
+OnePlus, Sony Xperia, OPPO, vivo, Realme, Tecno; MacBook Pro/Air
+M1-M4; полные линейки ASUS (ZenBook/VivoBook/ROG/TUF/ExpertBook),
+Lenovo (ThinkPad/IdeaPad/Yoga/Legion/LOQ), HP, Acer, Dell, MSI,
+Samsung Galaxy Book, Huawei MateBook; iPad, Apple Watch, наушники
+(AirPods/Sony/Bose/Marshall/JBL), консоли (PS5/Xbox/Switch/Steam
+Deck), камеры (Canon/Sony/Nikon/Fujifilm), дроны DJI, бытовая
+техника, инструмент Makita/Bosch/DeWalt, ювелирка.
+
+Token-based поиск: «iphone 17 max 1tb» находит «iPhone 17 Pro Max
+1TB Silver». 35 категорий (электроника / бытовая / инструмент /
+ювелирка / транспорт / хобби).
+
+### Этап 20. Карточка товара /catalog/[id]
+
+Публичная страница товара с галереей (zoom-lightbox: колесо мыши —
+зум, drag — пан, ← → — переключение фото, Esc — закрыть),
+описанием, комплектностью, характеристиками. Последние сворачиваются
+до 5 строк с кнопкой «Развернуть подробно». Главное фото 4:3 (не
+квадрат — лучше для landscape-фото). Блок «Где забрать» с адресом
+из `lib/legal.ts` и часами работы. Кнопка «Купить» добавляет в
+корзину.
+
+### Этап 21. Брендинг и юр.правки
+
+- Favicon в стиле логотипа (золотой ромб с алмазом). `app/icon.svg`
+  + `app/apple-icon.svg`.
+- Адрес магазина и реквизиты вынесены в `lib/legal.ts`. Подтянуты
+  везде: футер, /offer, /privacy, /delivery, /cart/success,
+  карточка товара, LocationSection.
+- Тестовые реквизиты сменены: ИП Горбунков С.С., ИНН 1234567890,
+  ул. Покровская 18с1. Формулировки в офере и delivery про чек
+  «самозанятого/Мой налог» заменены на «фискальный чек по 54-ФЗ
+  через ОФД» — соответствует ИП с онлайн-кассой.
+
+### Что осталось as-is (для следующей итерации)
+
+- ЮKassa подключена черновиком, ключи не вписаны, ожидается одобрение
+  анкеты.
+- Bitrix24 интеграция не активирована.
+- Корзина и Telegram-уведомления работают (с v1.0 без изменений).
+- Тестовые товары «тест1»-«тест5» по 10 ₽ — для проверки flow покупки.
+- Плашка «Демонстрационная версия» сверху каждой страницы.
+
+### Файлы добавленные в v2.0 (карта)
+
+| Файл | Назначение |
+|---|---|
+| `app/admin/products/page.tsx` | Список с фильтрами + soft-delete |
+| `app/admin/products/ProductForm.tsx` | Главная форма CRUD |
+| `app/admin/products/BrandPicker.tsx` | Топ-10 + спойлер бренда |
+| `app/admin/products/ComplectationPicker.tsx` | Пресет-чипсы комплекта |
+| `app/admin/products/SpecsParserModal.tsx` | Парсер из текста |
+| `app/admin/products/actions.ts` | Server actions CRUD |
+| `app/admin/products/new/page.tsx`, `[id]/edit/page.tsx` | Страницы |
+| `app/(public)/catalog/[id]/page.tsx` | Публичная карточка |
+| `app/(public)/catalog/[id]/ProductGallery.tsx` | Галерея + lightbox |
+| `app/(public)/catalog/[id]/SpecsList.tsx` | Сворачиваемые specs |
+| `app/api/admin/ai-autofill/route.ts` | AI endpoint |
+| `app/icon.svg`, `app/apple-icon.svg` | Favicon бренда |
+| `lib/preset-models.ts`, `preset-models-extended.ts` | ~370 моделей |
+| `lib/preset-complectation.ts` | Комплектность по категориям |
+| `lib/parse-specs.ts` | Парсер текста характеристик |
+| `lib/ai-autofill.ts` | Anthropic / OpenAI клиент |
+| `lib/supabase/storage.ts` | Browser-side upload в Storage |
+| `supabase/migrations/0007_*.sql` | is_published + specs + battery_health |
+| `supabase/migrations/0008_*.sql` | brand |
+| `supabase/migrations/0009_*.sql` | complectation + battery → text |
+
+### Заготовки для будущих проектов
+
+Из этого релиза в `C:\Wibecoding\Zagotovki\` сохранены:
+
+- **KomissionkaParserHarakteristikiDelitText** — изолированный парсер
+  характеристик (parse-specs.ts + SpecsParserModal.tsx + README).
+- **KomissionkaOknoDobavleniyaTovara(...)** — вся админ-форма CRUD
+  с зависимостями: формы, picker'ы, AI, parser, миграции, README с
+  инструкцией интеграции в новый проект.
+
+---
+
+## Тег v2.0-admin-crud
+
+Точка отсечения текущего стабильного состояния. Перед началом большой
+переделки (новый дизайн / новая модель данных / новый стек) откатить
+к этой версии можно командой:
+
+```bash
+git checkout v2.0-admin-crud
+```
+
+Или на проде через Coolify → Deployments → найти соответствующий
+успешный билд (sha `d69d8d0` или новее) → **Redeploy**.
