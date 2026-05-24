@@ -2,7 +2,7 @@
 
 import { useState, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Upload, Loader2, GripVertical } from 'lucide-react';
+import { X, Upload, Loader2, GripVertical, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/components/shared/Input';
 import { Button } from '@/components/shared/Button';
@@ -91,6 +91,42 @@ export function ProductForm({ initial, action }: Props) {
     setSpecs(Object.entries(preset.specs).map(([k, v]) => [k, String(v ?? '')]));
     setShowSuggestions(false);
     toast.success('Подставил характеристики из шаблона');
+  }
+
+  const [aiLoading, setAiLoading] = useState(false);
+  async function aiAutofill() {
+    if (!title.trim() || title.trim().length < 3) {
+      toast.error('Сначала введите название модели');
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const res = await fetch('/api/admin/ai-autofill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: title, categoryHint: category }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast.error(json.error ?? 'AI не отвечает');
+        return;
+      }
+      // AI не должен затирать пользовательские правки; обновляем только если поле пустое
+      if (json.title) setTitle(json.title);
+      if (json.brand) setBrand(json.brand);
+      if (json.category) setCategory(json.category);
+      if (json.description && (!description || description.length < 3)) {
+        setDescription(json.description);
+      }
+      if (json.specs && Object.keys(json.specs).length > 0) {
+        setSpecs(Object.entries(json.specs).map(([k, v]) => [k, String(v)]));
+      }
+      toast.success('AI заполнил карточку — проверьте и поправьте');
+    } catch {
+      toast.error('Сетевая ошибка при обращении к AI');
+    } finally {
+      setAiLoading(false);
+    }
   }
 
   function addSpecRow() {
@@ -183,7 +219,23 @@ export function ProductForm({ initial, action }: Props) {
 
       {/* Title with autocomplete */}
       <div className="relative">
-        <label className="mb-2 block text-sm font-medium">Название</label>
+        <div className="mb-2 flex items-center justify-between">
+          <label className="block text-sm font-medium">Название</label>
+          <button
+            type="button"
+            onClick={aiAutofill}
+            disabled={aiLoading || !title.trim()}
+            className="flex items-center gap-1 rounded-full bg-primary/5 px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/10 disabled:opacity-50"
+            title="Подставить характеристики через нейросеть (нужен ключ ANTHROPIC_API_KEY или OPENAI_API_KEY)"
+          >
+            {aiLoading ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <Sparkles size={12} />
+            )}
+            Распознать AI
+          </button>
+        </div>
         <input
           name="title"
           value={title}

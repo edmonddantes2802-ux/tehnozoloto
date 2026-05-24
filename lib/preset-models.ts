@@ -7,6 +7,7 @@
 // и заполняется руками.
 
 import type { ProductSpecs } from '@/types/database';
+import { EXTENDED_MODELS } from './preset-models-extended';
 
 // ============ КАТЕГОРИИ ============
 // ~30 категорий, релевантных для комиссионного магазина.
@@ -206,7 +207,7 @@ const iCommon = (chip: string, ram: string, storage: string, screen: string, cam
   Чип: chip, RAM: ram, Хранилище: storage, Экран: screen, Камера: cam,
 });
 
-export const PRESET_MODELS: PresetModel[] = [
+const BASE_PRESET_MODELS: PresetModel[] = [
   // ===== iPhone =====
   { title: 'iPhone 11 64GB', category: 'smartphone', description: 'A13 Bionic, 6.1" Liquid Retina HD',
     specs: iCommon('Apple A13 Bionic', '4 GB', '64 GB', '6.1" Liquid Retina HD', '12 + 12 МП') },
@@ -681,6 +682,23 @@ export const PRESET_MODELS: PresetModel[] = [
   { title: 'Слиток золотой 999, 10г', category: 'gold', description: 'Банковский', specs: { Проба: '999', Вес: '10 г' } },
   { title: 'Цепь серебряная 925, 15г', category: 'silver', description: 'Якорное', specs: { Проба: '925', Вес: '15 г' } },
 ];
+
+// Объединяем базовый набор и расширенный.
+// Дубликаты убираем по title (case-insensitive) — базовый имеет приоритет.
+function mergePresets(base: PresetModel[], extra: PresetModel[]): PresetModel[] {
+  const seen = new Set(base.map((p) => p.title.toLowerCase()));
+  const merged = [...base];
+  for (const p of extra) {
+    const k = p.title.toLowerCase();
+    if (!seen.has(k)) {
+      merged.push(p);
+      seen.add(k);
+    }
+  }
+  return merged;
+}
+
+export const PRESET_MODELS: PresetModel[] = mergePresets(BASE_PRESET_MODELS, EXTENDED_MODELS);
 
 // ============ ПОИСК ============
 // Token-based: разбиваем запрос на слова и требуем все токены в title.
