@@ -8,18 +8,10 @@ import {
   adminSelect,
   isAdminConfigured,
 } from '@/lib/supabase/rest';
+import { CATEGORY_KEYS } from '@/lib/preset-models';
 import type { ProductRow, ProductSpecs } from '@/types/database';
 
-const VALID_CATEGORIES = [
-  'smartphone',
-  'laptop',
-  'tablet',
-  'console',
-  'audio',
-  'tool',
-  'gold',
-  'other',
-];
+const VALID_CATEGORIES: string[] = [...CATEGORY_KEYS];
 
 const VALID_CONDITIONS = ['new', 'excellent', 'good', 'fair'];
 
