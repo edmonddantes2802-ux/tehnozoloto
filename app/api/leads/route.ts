@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { leadSchema } from '@/lib/validators';
+import { notifyLead } from '@/lib/telegram';
 
 const rateLimitMap = new Map<string, number[]>();
 const WINDOW_MS = 60 * 60 * 1000;
@@ -42,10 +43,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
+    // Telegram-уведомление о новой заявке — fire-and-forget, не блокирует
+    // ответ клиенту даже при недоступности БД.
+    notifyLead({
+      full_name: parsed.data.full_name,
+      phone: parsed.data.phone,
+      category: parsed.data.category,
+      estimated_value: parsed.data.estimated_value ?? null,
+      details: parsed.data.details ?? null,
+    }).catch((e) => console.error('[leads:telegram]', e));
+
     const admin = createSupabaseAdminClient();
     if (!admin) {
       console.warn('[leads.insert] SUPABASE_SERVICE_ROLE_KEY not set — lead not persisted');
-      // Не блокируем пользователя: лид всё равно дойдёт через Telegram/CRM
+      // Не блокируем пользователя: лид всё равно дойдёт через Telegram
       return NextResponse.json({ ok: true, persisted: false });
     }
 

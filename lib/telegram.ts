@@ -130,3 +130,57 @@ export async function notifyOrder(input: NotifyOrderInput): Promise<void> {
     )
   );
 }
+
+interface NotifyLeadInput {
+  full_name: string;
+  phone: string;
+  category: 'gold' | 'tech';
+  estimated_value: number | null;
+  details: Record<string, unknown> | null;
+}
+
+const categoryLabel: Record<string, string> = {
+  gold: 'Золото',
+  tech: 'Техника',
+};
+
+function buildLeadMessage(input: NotifyLeadInput): string {
+  const lines: string[] = [];
+  lines.push('📋 <b>Заявка на оценку</b>');
+  lines.push('');
+  lines.push(`<b>Клиент:</b> ${escapeHtml(input.full_name)}`);
+  lines.push(`<b>Телефон:</b> ${escapeHtml(input.phone)}`);
+  lines.push(`<b>Категория:</b> ${categoryLabel[input.category] ?? input.category}`);
+  if (input.estimated_value !== null) {
+    lines.push(`<b>Оценка с калькулятора:</b> ${fmtPrice(input.estimated_value)}`);
+  }
+  if (input.details && Object.keys(input.details).length > 0) {
+    lines.push('');
+    lines.push('<b>Детали:</b>');
+    for (const [key, value] of Object.entries(input.details)) {
+      lines.push(`• ${escapeHtml(key)}: ${escapeHtml(String(value))}`);
+    }
+  }
+  lines.push('');
+  lines.push('Перезвоните клиенту в течение 10 минут.');
+  return lines.join('\n');
+}
+
+export async function notifyLead(input: NotifyLeadInput): Promise<void> {
+  if (!isTelegramConfigured()) return;
+  const token = process.env.TELEGRAM_BOT_TOKEN!;
+  const chatIds = process.env
+    .TELEGRAM_CHAT_ID!.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const text = buildLeadMessage(input);
+
+  await Promise.allSettled(
+    chatIds.map((chatId) =>
+      sendToChat(token, chatId, text).catch((e) => {
+        console.error(`[telegram.notify] chat=${chatId}`, e);
+      })
+    )
+  );
+}
