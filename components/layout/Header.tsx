@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useGoldPrices } from '@/hooks/useGoldPrices';
 import { formatRub } from '@/lib/utils';
 import { cn } from '@/lib/utils';
@@ -46,22 +46,18 @@ export function Header() {
             <div className="font-semibold text-gold">{formatRub(price585)}/г</div>
           </div>
           <CartIcon />
-          <Link
-            href="/profile"
-            aria-label="Личный кабинет"
-            className="flex h-10 w-10 items-center justify-center rounded-corp border border-corporate-border text-primary hover:border-gold hover:text-gold"
-          >
-            <User size={18} />
-          </Link>
         </div>
 
-        <button
-          className="md:hidden"
-          aria-label="Меню"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <X /> : <Menu />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <CartIcon />
+          <button
+            aria-label="Меню"
+            onClick={() => setOpen((v) => !v)}
+            className="flex h-10 w-10 items-center justify-center"
+          >
+            {open ? <X /> : <Menu />}
+          </button>
+        </div>
       </div>
 
       <div
@@ -81,13 +77,6 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-          <Link
-            href="/profile"
-            onClick={() => setOpen(false)}
-            className="rounded-corp px-3 py-3 text-sm font-medium text-corporate-gray hover:bg-corporate-bg"
-          >
-            Личный кабинет
-          </Link>
         </nav>
       </div>
     </header>

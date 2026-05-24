@@ -20,7 +20,6 @@ export function Footer() {
             <li><Link href="/catalog" className="hover:text-gold">Каталог</Link></li>
             <li><Link href="/delivery" className="hover:text-gold">Доставка и оплата</Link></li>
             <li><Link href="/#faq" className="hover:text-gold">FAQ</Link></li>
-            <li><Link href="/profile" className="hover:text-gold">Личный кабинет</Link></li>
           </ul>
         </div>
         <div>
