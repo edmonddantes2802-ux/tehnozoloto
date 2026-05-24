@@ -2,8 +2,10 @@
 
 import { useState, useRef, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Upload, Loader2, GripVertical, Sparkles } from 'lucide-react';
+import { X, Upload, Loader2, GripVertical, Sparkles, ClipboardPaste } from 'lucide-react';
 import { toast } from 'sonner';
+import { SpecsParserModal } from './SpecsParserModal';
+import type { SpecPair } from '@/lib/parse-specs';
 import { Input } from '@/components/shared/Input';
 import { Button } from '@/components/shared/Button';
 import { cn } from '@/lib/utils';
@@ -137,6 +139,24 @@ export function ProductForm({ initial, action }: Props) {
   }
   function removeSpec(idx: number) {
     setSpecs((s) => s.filter((_, i) => i !== idx));
+  }
+
+  const [parserOpen, setParserOpen] = useState(false);
+  function applyParsedSpecs(pairs: SpecPair[], mode: 'replace' | 'append') {
+    const incoming: Array<[string, string]> = pairs.map((p) => [p.key, p.value]);
+    if (mode === 'replace') {
+      setSpecs(incoming);
+    } else {
+      // append с дедупликацией по ключу (lowercase)
+      const existingKeys = new Set(
+        specs.map(([k]) => k.trim().toLowerCase())
+      );
+      const filtered = incoming.filter(
+        ([k]) => !existingKeys.has(k.trim().toLowerCase())
+      );
+      setSpecs((s) => [...s.filter(([k]) => k.trim()), ...filtered]);
+    }
+    toast.success(`Применено ${incoming.length} характеристик`);
   }
 
   async function handleFiles(files: FileList | null) {
@@ -360,15 +380,24 @@ export function ProductForm({ initial, action }: Props) {
 
       {/* Specs */}
       <div>
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <label className="text-sm font-medium">Характеристики</label>
-          <button
-            type="button"
-            onClick={addSpecRow}
-            className="text-xs font-semibold text-gold hover:underline"
-          >
-            + Добавить строку
-          </button>
+          <div className="flex items-center gap-3 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setParserOpen(true)}
+              className="inline-flex items-center gap-1 rounded-full bg-primary/5 px-3 py-1 text-primary hover:bg-primary/10"
+            >
+              <ClipboardPaste size={12} /> Вставить из текста
+            </button>
+            <button
+              type="button"
+              onClick={addSpecRow}
+              className="text-gold hover:underline"
+            >
+              + Добавить строку
+            </button>
+          </div>
         </div>
         {specs.length === 0 && (
           <p className="rounded-corp border border-dashed border-corporate-border bg-corporate-bg p-4 text-sm text-corporate-muted">
@@ -520,6 +549,14 @@ export function ProductForm({ initial, action }: Props) {
           </Button>
         </div>
       </div>
+
+      {parserOpen && (
+        <SpecsParserModal
+          onClose={() => setParserOpen(false)}
+          onApply={applyParsedSpecs}
+          existingCount={specs.filter(([k]) => k.trim()).length}
+        />
+      )}
     </form>
   );
 }
