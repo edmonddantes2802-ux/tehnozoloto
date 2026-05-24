@@ -10,6 +10,7 @@ import { LEGAL } from '@/lib/legal';
 import { CATEGORY_LABELS, type ProductCategoryKey } from '@/lib/preset-models';
 import type { ProductRow } from '@/types/database';
 import { ProductGallery } from './ProductGallery';
+import { SpecsList } from './SpecsList';
 
 export const dynamic = 'force-dynamic';
 
@@ -199,29 +200,12 @@ export default async function ProductDetailPage({
             </section>
           )}
 
-          {(Object.keys(specs).length > 0 || product.battery_health) && (
-            <section className="rounded-card border border-corporate-border bg-white p-6">
-              <h2 className="mb-3 text-xl font-semibold">Характеристики</h2>
-              <dl className="divide-y divide-corporate-border text-sm">
-                {product.battery_health && (
-                  <div className="flex justify-between gap-4 py-2">
-                    <dt className="text-corporate-gray">Состояние аккумулятора</dt>
-                    <dd className="text-right font-semibold">
-                      {product.battery_health}
-                    </dd>
-                  </div>
-                )}
-                {Object.entries(specs).map(([key, value]) =>
-                  value === null || value === '' ? null : (
-                    <div key={key} className="flex justify-between gap-4 py-2">
-                      <dt className="text-corporate-gray">{key}</dt>
-                      <dd className="text-right font-medium">{String(value)}</dd>
-                    </div>
-                  )
-                )}
-              </dl>
-            </section>
-          )}
+          <SpecsList
+            specs={Object.entries(specs)
+              .filter(([, v]) => v !== null && v !== undefined)
+              .map(([k, v]) => [k, v as string | number])}
+            batteryHealth={product.battery_health}
+          />
         </div>
 
         <div className="mt-10 text-center">
