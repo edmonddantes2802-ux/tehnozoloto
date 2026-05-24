@@ -72,10 +72,134 @@ export const CATEGORY_KEYS = Object.keys(CATEGORY_LABELS) as ProductCategoryKey[
 
 export interface PresetModel {
   title: string;
+  /** Если не задан — берётся из getBrand(p) по эвристике из title. */
+  brand?: string;
   category: ProductCategoryKey;
   description: string;
   specs: ProductSpecs;
 }
+
+/**
+ * Эвристика «бренд из заголовка». Не идеально для всех случаев,
+ * но покрывает 120+ наших моделей. Для специфики можно прокинуть
+ * явный brand в PresetModel.
+ */
+export function extractBrand(title: string, category?: ProductCategoryKey): string {
+  const t = title.toLowerCase();
+  if (t.startsWith('iphone') || t.startsWith('ipad') || t.startsWith('macbook') ||
+      t.startsWith('apple watch') || t.startsWith('airpods')) return 'Apple';
+  if (t.startsWith('samsung')) return 'Samsung';
+  if (t.startsWith('google ') || t.startsWith('pixel ')) return 'Google';
+  if (t.startsWith('xiaomi') || t.startsWith('redmi') || t.startsWith('poco')) return 'Xiaomi';
+  if (t.startsWith('honor')) return 'Honor';
+  if (t.startsWith('huawei')) return 'Huawei';
+  if (t.startsWith('oneplus')) return 'OnePlus';
+  if (t.startsWith('oppo')) return 'OPPO';
+  if (t.startsWith('vivo')) return 'vivo';
+  if (t.startsWith('realme')) return 'Realme';
+  if (t.startsWith('tecno')) return 'Tecno';
+  if (t.startsWith('sony xperia') || t.startsWith('sony wh') || t.startsWith('sony wf') ||
+      t.startsWith('sony alpha') || t.startsWith('sony bravia') ||
+      t.startsWith('playstation') || t.startsWith('ps5') || t.startsWith('ps4')) return 'Sony';
+  if (t.startsWith('xbox')) return 'Microsoft';
+  if (t.startsWith('nintendo')) return 'Nintendo';
+  if (t.startsWith('valve') || t.startsWith('steam deck')) return 'Valve';
+  if (t.startsWith('asus')) return 'ASUS';
+  if (t.startsWith('lenovo')) return 'Lenovo';
+  if (t.startsWith('hp ')) return 'HP';
+  if (t.startsWith('acer')) return 'Acer';
+  if (t.startsWith('dell')) return 'Dell';
+  if (t.startsWith('msi')) return 'MSI';
+  if (t.startsWith('bose')) return 'Bose';
+  if (t.startsWith('marshall')) return 'Marshall';
+  if (t.startsWith('jbl')) return 'JBL';
+  if (t.startsWith('sonos')) return 'Sonos';
+  if (t.startsWith('яндекс')) return 'Яндекс';
+  if (t.startsWith('vk ')) return 'VK';
+  if (t.startsWith('canon')) return 'Canon';
+  if (t.startsWith('nikon')) return 'Nikon';
+  if (t.startsWith('fujifilm')) return 'Fujifilm';
+  if (t.startsWith('sigma')) return 'Sigma';
+  if (t.startsWith('dji')) return 'DJI';
+  if (t.startsWith('ninebot')) return 'Ninebot';
+  if (t.startsWith('kugoo')) return 'Kugoo';
+  if (t.startsWith('stels')) return 'STELS';
+  if (t.startsWith('trek')) return 'Trek';
+  if (t.startsWith('giant')) return 'Giant';
+  if (t.startsWith('roborock')) return 'Roborock';
+  if (t.startsWith('dyson')) return 'Dyson';
+  if (t.startsWith('delonghi')) return 'DeLonghi';
+  if (t.startsWith('philips')) return 'Philips';
+  if (t.startsWith('bosch')) return 'Bosch';
+  if (t.startsWith('makita')) return 'Makita';
+  if (t.startsWith('dewalt')) return 'DeWalt';
+  if (t.startsWith('knipex')) return 'Knipex';
+  if (t.startsWith('stanley')) return 'Stanley';
+  if (t.startsWith('wera')) return 'Wera';
+  if (t.startsWith('seiko')) return 'Seiko';
+  if (t.startsWith('casio')) return 'Casio';
+  if (t.startsWith('tissot')) return 'Tissot';
+  if (t.startsWith('garmin')) return 'Garmin';
+  if (t.startsWith('lg ')) return 'LG';
+  // По-русски — золотые/серебряные изделия
+  if (category === 'gold' || category === 'silver') return 'Прочее';
+  // Игры
+  if (category === 'console_game') {
+    if (t.includes('(ps5)') || t.includes('(ps4)')) return 'Sony';
+    if (t.includes('(switch)')) return 'Nintendo';
+    if (t.includes('(xbox)')) return 'Microsoft';
+  }
+  return 'Прочее';
+}
+
+export function getBrand(p: PresetModel): string {
+  return p.brand ?? extractBrand(p.title, p.category);
+}
+
+// ============ ТОП-БРЕНДЫ ПО КАТЕГОРИЯМ ============
+// Первые 10 показываются кнопками-чипсами; остальные открываются спойлером.
+// Список будет расширяться по мере добавления моделей.
+
+export const TOP_BRANDS_BY_CATEGORY: Record<ProductCategoryKey, string[]> = {
+  smartphone: ['Apple', 'Samsung', 'Xiaomi', 'Honor', 'Google', 'OnePlus', 'Sony', 'OPPO', 'vivo', 'Realme'],
+  tablet: ['Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Lenovo', 'Microsoft', 'Honor', 'OPPO', 'Realme', 'TCL'],
+  laptop: ['Apple', 'ASUS', 'Lenovo', 'HP', 'Acer', 'Dell', 'MSI', 'Huawei', 'Honor', 'Samsung'],
+  desktop_pc: ['Apple', 'ASUS', 'HP', 'Lenovo', 'Acer', 'MSI', 'Dell', 'DEXP', 'Pulser', 'iRU'],
+  monitor: ['LG', 'Samsung', 'ASUS', 'Acer', 'Dell', 'MSI', 'BenQ', 'AOC', 'Philips', 'ViewSonic'],
+  console: ['Sony', 'Microsoft', 'Nintendo', 'Valve', 'Steam', 'Sega', 'Logitech G', 'ASUS ROG', 'Razer', 'Atari'],
+  console_game: ['Sony', 'Microsoft', 'Nintendo', 'Bandai Namco', 'Capcom', 'Square Enix', 'Ubisoft', 'Activision', 'Sega', 'CD Projekt'],
+  audio_headphones: ['Apple', 'Sony', 'Bose', 'Marshall', 'JBL', 'Sennheiser', 'Beats', 'Anker', 'Xiaomi', 'Samsung'],
+  audio_speaker: ['JBL', 'Marshall', 'Sonos', 'Bose', 'Sony', 'Яндекс', 'VK', 'Sber', 'Anker', 'Harman Kardon'],
+  tv: ['LG', 'Samsung', 'Sony', 'Xiaomi', 'TCL', 'Philips', 'Hisense', 'Haier', 'DEXP', 'Sber'],
+  camera: ['Canon', 'Sony', 'Nikon', 'Fujifilm', 'Panasonic', 'Leica', 'Olympus / OM System', 'GoPro', 'DJI', 'Insta360'],
+  camera_lens: ['Canon', 'Sony', 'Nikon', 'Sigma', 'Tamron', 'Fujifilm', 'Panasonic', 'Samyang', 'Tokina', 'Zeiss'],
+  ebook: ['PocketBook', 'ONYX BOOX', 'Amazon Kindle', 'reMarkable', 'Digma', 'Tesla', 'Kobo', 'Barnes & Noble', 'Texet', 'Wexler'],
+  smartwatch: ['Apple', 'Samsung', 'Garmin', 'Huawei', 'Xiaomi', 'Honor', 'Amazfit', 'Fitbit', 'Polar', 'Withings'],
+  drone: ['DJI', 'Autel', 'Parrot', 'XAG', 'Holy Stone', 'Hubsan', 'Walkera', 'Skydio', 'Yuneec', 'Insta360'],
+  network: ['TP-Link', 'Keenetic', 'ASUS', 'Mikrotik', 'D-Link', 'Xiaomi', 'Mercusys', 'Netgear', 'Ubiquiti', 'Huawei'],
+  gaming_periph: ['Logitech G', 'Razer', 'SteelSeries', 'HyperX', 'Corsair', 'ASUS ROG', 'Glorious', 'Pulsar', 'Roccat', 'Cooler Master'],
+  appliance_large: ['LG', 'Samsung', 'Bosch', 'Indesit', 'Hotpoint-Ariston', 'Haier', 'Beko', 'Atlant', 'Candy', 'Hisense'],
+  appliance_kitchen: ['DeLonghi', 'Philips', 'Bosch', 'Bork', 'Tefal', 'Polaris', 'Redmond', 'Kenwood', 'Braun', 'Kitfort'],
+  appliance_clean: ['Roborock', 'Xiaomi', 'iRobot', 'Dyson', 'Karcher', 'Polaris', 'Samsung', 'LG', 'Tefal', 'Philips'],
+  appliance_care: ['Philips', 'Braun', 'Rowenta', 'Tefal', 'Bosch', 'Remington', 'BaByliss', 'Panasonic', 'Dyson', 'Xiaomi'],
+  tool_power: ['Makita', 'Bosch', 'DeWalt', 'Metabo', 'Hilti', 'Hammer', 'Интерскол', 'Зубр', 'Patriot', 'AEG'],
+  tool_hand: ['Knipex', 'Stanley', 'Wera', 'Wiha', 'Force', 'Зубр', 'JONNESWAY', 'Gross', 'KraftTool', 'Matrix'],
+  tool_garden: ['Husqvarna', 'STIHL', 'Makita', 'Bosch', 'Patriot', 'Champion', 'Greenworks', 'Зубр', 'AL-KO', 'Echo'],
+  gold: ['585 Золотой', 'Sokolov', 'Sunlight', 'Эстет', 'Адамас', 'Линии Любви', 'Бронницкий ювелир', 'Lukas', 'Diamant', 'Прочее'],
+  silver: ['Sokolov', 'Эстет', 'Sunlight', 'Pandora', 'Sokolov Diamonds', 'Адамас', 'Lukas', 'Tiffany & Co.', 'Diamant', 'Прочее'],
+  gem: ['Tiffany & Co.', 'Cartier', 'Boucheron', 'Bvlgari', 'Sunlight', 'Sokolov', 'De Beers', 'Graff', 'Эстет', 'Прочее'],
+  watch_lux: ['Casio', 'Seiko', 'Tissot', 'Citizen', 'Orient', 'Garmin', 'Suunto', 'Timex', 'Hamilton', 'Frederique Constant'],
+  ebike: ['STELS', 'Trek', 'Giant', 'Specialized', 'Forward', 'Stinger', 'Cannondale', 'Stark', 'Welt', 'Merida'],
+  escooter: ['Xiaomi', 'Ninebot', 'Kugoo', 'Hiper', 'Wakers', 'Citymate', 'Acer', 'Aovo', 'BBR', 'Inmotion'],
+  skateboard: ['Element', 'Santa Cruz', 'Plan B', 'Almost', 'Real', 'Юнион', 'Footwork', 'Anti Hero', 'Powell Peralta', 'Прочее'],
+  music_instrument: ['Yamaha', 'Casio', 'Fender', 'Gibson', 'Roland', 'Korg', 'Cort', 'Ibanez', 'Squier', 'Прочее'],
+  sports: ['Nike', 'Adidas', 'Puma', 'Reebok', 'New Balance', 'Decathlon', 'Demix', 'Asics', 'Wilson', 'Прочее'],
+  book: ['АСТ', 'ЭКСМО', 'Манн, Иванов и Фербер', 'Питер', 'O\'Reilly', 'Pearson', 'Penguin', 'Pleasant Music', 'Прочее', 'Самиздат'],
+  collectibles: ['LEGO', 'Funko', 'Hasbro', 'Mattel', 'Magic the Gathering', 'Pokémon TCG', 'Russian Post', 'Прочее', 'Самодел', 'Бонистика'],
+  test: ['Тест'],
+  other: ['Прочее'],
+};
+
 
 // Хелперы для краткости в спеках
 const iCommon = (chip: string, ram: string, storage: string, screen: string, cam: string): ProductSpecs => ({
@@ -560,19 +684,36 @@ export const PRESET_MODELS: PresetModel[] = [
 
 // ============ ПОИСК ============
 // Token-based: разбиваем запрос на слова и требуем все токены в title.
-// «iphone 17 max» → найдёт «iPhone 17 Pro Max 256GB».
-export function searchPresets(query: string, limit = 8): PresetModel[] {
+// Можно ограничить категорией и/или брендом.
+export interface SearchOptions {
+  category?: ProductCategoryKey;
+  brand?: string;
+  limit?: number;
+}
+
+export function searchPresets(query: string, opts: SearchOptions = {}): PresetModel[] {
+  const { category, brand, limit = 8 } = opts;
   const q = query.trim().toLowerCase();
-  if (!q) return [];
-  const tokens = q.split(/\s+/).filter(Boolean);
+  const tokens = q ? q.split(/\s+/).filter(Boolean) : [];
+
   const matches: Array<{ p: PresetModel; score: number }> = [];
   for (const p of PRESET_MODELS) {
+    if (category && p.category !== category) continue;
+    if (brand && getBrand(p) !== brand) continue;
     const lower = p.title.toLowerCase();
-    if (!tokens.every((t) => lower.includes(t))) continue;
-    // Score: startsWith первого токена → бонус.
-    const score = lower.startsWith(tokens[0]) ? 0 : 1;
+    if (tokens.length > 0 && !tokens.every((t) => lower.includes(t))) continue;
+    const score = tokens.length > 0 && lower.startsWith(tokens[0]) ? 0 : 1;
     matches.push({ p, score });
   }
   matches.sort((a, b) => a.score - b.score);
   return matches.slice(0, limit).map((m) => m.p);
+}
+
+/** Все уникальные бренды, реально встречающиеся в preset для категории. */
+export function brandsInPresetsForCategory(category: ProductCategoryKey): string[] {
+  const set = new Set<string>();
+  for (const p of PRESET_MODELS) {
+    if (p.category === category) set.add(getBrand(p));
+  }
+  return Array.from(set).sort();
 }

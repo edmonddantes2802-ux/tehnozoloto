@@ -84,11 +84,18 @@ export default async function ProductDetailPage({
           {/* Правая колонка — инфо + покупка */}
           <aside className="space-y-6">
             <div>
-              {categoryLabel && (
-                <div className="mb-2 inline-block rounded bg-gold/10 px-2 py-1 text-xs font-semibold text-gold-dark">
-                  {categoryLabel}
-                </div>
-              )}
+              <div className="mb-2 flex flex-wrap gap-2">
+                {categoryLabel && (
+                  <span className="inline-block rounded bg-gold/10 px-2 py-1 text-xs font-semibold text-gold-dark">
+                    {categoryLabel}
+                  </span>
+                )}
+                {product.brand && (
+                  <span className="inline-block rounded bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
+                    {product.brand}
+                  </span>
+                )}
+              </div>
               <h1 className="mb-2 text-2xl font-bold leading-tight md:text-3xl">
                 {product.title}
               </h1>

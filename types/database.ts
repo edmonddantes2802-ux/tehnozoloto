@@ -40,6 +40,7 @@ export interface ProductRow {
   price: number;
   old_price: number | null;
   category: string | null;
+  brand: string | null;
   images: string[];
   condition: ProductCondition | null;
   is_sold: boolean;

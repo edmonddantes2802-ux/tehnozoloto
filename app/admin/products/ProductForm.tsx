@@ -12,9 +12,11 @@ import {
   PRESET_MODELS,
   searchPresets,
   CATEGORY_LABELS,
+  getBrand,
   type ProductCategoryKey,
 } from '@/lib/preset-models';
 import type { ProductRow, ProductSpecs } from '@/types/database';
+import { BrandPicker } from './BrandPicker';
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS) as ProductCategoryKey[];
 const CONDITIONS = [
@@ -45,6 +47,7 @@ export function ProductForm({ initial, action }: Props) {
   const [category, setCategory] = useState<ProductCategoryKey>(
     (initial?.category as ProductCategoryKey) ?? 'smartphone'
   );
+  const [brand, setBrand] = useState<string>(initial?.brand ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [price, setPrice] = useState(initial?.price.toString() ?? '');
   const [oldPrice, setOldPrice] = useState(initial?.old_price?.toString() ?? '');
@@ -68,7 +71,9 @@ export function ProductForm({ initial, action }: Props) {
   function onTitleChange(v: string) {
     setTitle(v);
     if (v.length >= 2) {
-      setTitleSuggestions(searchPresets(v));
+      setTitleSuggestions(
+        searchPresets(v, { category, brand: brand || undefined })
+      );
       setShowSuggestions(true);
     } else {
       setTitleSuggestions([]);
@@ -79,6 +84,7 @@ export function ProductForm({ initial, action }: Props) {
   function pickPreset(preset: (typeof PRESET_MODELS)[number]) {
     setTitle(preset.title);
     setCategory(preset.category);
+    setBrand(getBrand(preset));
     if (!description || description.length < preset.description.length) {
       setDescription(preset.description);
     }
@@ -246,7 +252,11 @@ export function ProductForm({ initial, action }: Props) {
           <select
             name="category"
             value={category}
-            onChange={(e) => setCategory(e.target.value as ProductCategoryKey)}
+            onChange={(e) => {
+              setCategory(e.target.value as ProductCategoryKey);
+              // При смене категории бренд сбрасываем — top-10 другой
+              setBrand('');
+            }}
             className="h-12 w-full rounded-corp border border-corporate-border bg-white px-4 text-base outline-none focus:border-gold"
           >
             {CATEGORIES.map((c) => (
@@ -272,6 +282,10 @@ export function ProductForm({ initial, action }: Props) {
           </select>
         </div>
       </div>
+
+      {/* Brand picker */}
+      <BrandPicker category={category} value={brand} onChange={setBrand} />
+      <input type="hidden" name="brand" value={brand} />
 
       {/* Battery health — только для смартфонов / ноутбуков / планшетов */}
       {showBattery && (

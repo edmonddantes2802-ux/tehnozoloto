@@ -22,6 +22,7 @@ interface ProductFormData {
   price: number;
   old_price: number | null;
   category: string;
+  brand: string | null;
   condition: string;
   is_published: boolean;
   battery_health: number | null;
@@ -36,6 +37,8 @@ function parseFormData(formData: FormData): ProductFormData {
   const oldPriceRaw = formData.get('old_price');
   const old_price = oldPriceRaw ? Number(oldPriceRaw) || null : null;
   const category = String(formData.get('category') ?? 'other');
+  const brandRaw = String(formData.get('brand') ?? '').trim();
+  const brand = brandRaw.length > 0 ? brandRaw : null;
   const condition = String(formData.get('condition') ?? 'good');
   const is_published = formData.get('is_published') === 'on';
   const batteryRaw = formData.get('battery_health');
@@ -72,6 +75,7 @@ function parseFormData(formData: FormData): ProductFormData {
     price,
     old_price,
     category: VALID_CATEGORIES.includes(category) ? category : 'other',
+    brand,
     condition: VALID_CONDITIONS.includes(condition) ? condition : 'good',
     is_published,
     battery_health:
@@ -99,6 +103,7 @@ export async function createProduct(formData: FormData) {
       price: data.price,
       old_price: data.old_price,
       category: data.category,
+      brand: data.brand,
       condition: data.condition,
       is_published: data.is_published,
       battery_health: data.battery_health,
@@ -128,6 +133,7 @@ export async function updateProduct(formData: FormData) {
     price: data.price,
     old_price: data.old_price,
     category: data.category,
+    brand: data.brand,
     condition: data.condition,
     is_published: data.is_published,
     battery_health: data.battery_health,

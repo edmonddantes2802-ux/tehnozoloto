@@ -114,6 +114,7 @@ export default async function AdminProductsPage({
                   Фото
                 </th>
                 <th className="px-4 py-3">Название</th>
+                <th className="px-4 py-3 whitespace-nowrap">Бренд</th>
                 <th className="px-4 py-3 whitespace-nowrap">Категория</th>
                 <th className="px-4 py-3 whitespace-nowrap">Цена</th>
                 <th className="px-4 py-3 whitespace-nowrap">Статус</th>
@@ -144,6 +145,9 @@ export default async function AdminProductsPage({
                         {p.description}
                       </div>
                     )}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-xs text-corporate-gray">
+                    {p.brand ?? '—'}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-xs text-corporate-gray">
                     {CATEGORY_LABELS[p.category as ProductCategoryKey] ?? p.category}
