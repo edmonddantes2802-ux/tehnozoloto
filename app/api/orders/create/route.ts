@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createPayment, isConfigured, YookassaError } from '@/lib/yookassa';
 import { notifyOrder } from '@/lib/telegram';
 
@@ -41,29 +41,37 @@ export async function POST(req: NextRequest) {
     }
     const { customer, items, delivery, total } = parsed.data;
 
-    // Best-effort сохранение заказа в Supabase. Если Supabase не настроен или
-    // упал — заказ всё равно создаётся в ЮKassa, чтобы клиент мог оплатить.
+    // Best-effort сохранение заказа в Supabase через admin (service_role)
+    // клиента — он обходит RLS, что позволяет и записать, и сразу вернуть id
+    // без отдельной SELECT-политики. Если Supabase не настроен или упал —
+    // заказ всё равно создаётся в ЮKassa, чтобы клиент мог оплатить.
     let orderId: string | null = null;
     try {
-      const supabase = createSupabaseServerClient();
-      const { data, error } = await supabase
-        .from('orders' as never)
-        .insert({
-          customer_name: customer.full_name,
-          customer_phone: customer.phone,
-          customer_email: customer.email ?? null,
-          delivery_method: delivery,
-          items: items as unknown,
-          total,
-          status: 'pending',
-        } as never)
-        .select('id')
-        .single();
-      if (!error && data) {
-        orderId = (data as { id: string }).id;
+      const admin = createSupabaseAdminClient();
+      if (admin) {
+        const { data, error } = await admin
+          .from('orders' as never)
+          .insert({
+            customer_name: customer.full_name,
+            customer_phone: customer.phone,
+            customer_email: customer.email ?? null,
+            delivery_method: delivery,
+            items: items as unknown,
+            total,
+            status: 'pending',
+          } as never)
+          .select('id')
+          .single();
+        if (error) {
+          console.error('[orders.create] supabase insert failed', error);
+        } else if (data) {
+          orderId = (data as { id: string }).id;
+        }
+      } else {
+        console.warn('[orders.create] SUPABASE_SERVICE_ROLE_KEY not set — order not persisted');
       }
     } catch (e) {
-      console.warn('[orders.create] supabase unavailable, proceeding without DB');
+      console.error('[orders.create] supabase unavailable', e);
     }
 
     const siteUrl =
