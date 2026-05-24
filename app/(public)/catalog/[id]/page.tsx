@@ -185,6 +185,20 @@ export default async function ProductDetailPage({
             </section>
           )}
 
+          {product.complectation && product.complectation.length > 0 && (
+            <section className="rounded-card border border-corporate-border bg-white p-6">
+              <h2 className="mb-3 text-xl font-semibold">В комплекте</h2>
+              <ul className="grid gap-2 text-sm text-corporate-gray sm:grid-cols-2">
+                {product.complectation.map((item, idx) => (
+                  <li key={`${item}-${idx}`} className="flex items-start gap-2">
+                    <span className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {(Object.keys(specs).length > 0 || product.battery_health) && (
             <section className="rounded-card border border-corporate-border bg-white p-6">
               <h2 className="mb-3 text-xl font-semibold">Характеристики</h2>
@@ -206,20 +220,6 @@ export default async function ProductDetailPage({
                   )
                 )}
               </dl>
-            </section>
-          )}
-
-          {product.complectation && product.complectation.length > 0 && (
-            <section className="rounded-card border border-corporate-border bg-white p-6">
-              <h2 className="mb-3 text-xl font-semibold">В комплекте</h2>
-              <ul className="grid gap-2 text-sm text-corporate-gray sm:grid-cols-2">
-                {product.complectation.map((item, idx) => (
-                  <li key={`${item}-${idx}`} className="flex items-start gap-2">
-                    <span className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
             </section>
           )}
         </div>
