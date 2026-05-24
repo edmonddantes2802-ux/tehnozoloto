@@ -174,8 +174,8 @@ export default async function ProductDetailPage({
           </aside>
         </div>
 
-        {/* Описание + характеристики во всю ширину */}
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        {/* Описание, характеристики и комплектность — вертикально, во всю ширину */}
+        <div className="mt-10 space-y-6">
           {product.description && (
             <section className="rounded-card border border-corporate-border bg-white p-6">
               <h2 className="mb-3 text-xl font-semibold">Описание</h2>
@@ -185,14 +185,16 @@ export default async function ProductDetailPage({
             </section>
           )}
 
-          {(Object.keys(specs).length > 0 || product.battery_health !== null) && (
+          {(Object.keys(specs).length > 0 || product.battery_health) && (
             <section className="rounded-card border border-corporate-border bg-white p-6">
               <h2 className="mb-3 text-xl font-semibold">Характеристики</h2>
               <dl className="divide-y divide-corporate-border text-sm">
-                {product.battery_health !== null && (
-                  <div className="flex justify-between py-2">
+                {product.battery_health && (
+                  <div className="flex justify-between gap-4 py-2">
                     <dt className="text-corporate-gray">Состояние аккумулятора</dt>
-                    <dd className="font-semibold">{product.battery_health}%</dd>
+                    <dd className="text-right font-semibold">
+                      {product.battery_health}
+                    </dd>
                   </div>
                 )}
                 {Object.entries(specs).map(([key, value]) =>
@@ -204,6 +206,20 @@ export default async function ProductDetailPage({
                   )
                 )}
               </dl>
+            </section>
+          )}
+
+          {product.complectation && product.complectation.length > 0 && (
+            <section className="rounded-card border border-corporate-border bg-white p-6">
+              <h2 className="mb-3 text-xl font-semibold">В комплекте</h2>
+              <ul className="grid gap-2 text-sm text-corporate-gray sm:grid-cols-2">
+                {product.complectation.map((item, idx) => (
+                  <li key={`${item}-${idx}`} className="flex items-start gap-2">
+                    <span className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
         </div>

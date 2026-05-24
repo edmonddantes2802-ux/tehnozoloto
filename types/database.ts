@@ -46,7 +46,10 @@ export interface ProductRow {
   is_sold: boolean;
   is_published: boolean;
   specs: ProductSpecs | null;
-  battery_health: number | null;
+  /** Свободная строка: «85%», «500 циклов», «10000 mAh из 19000 mAh» и т.п. */
+  battery_health: string | null;
+  /** Что входит в комплект (коробка, кабель, чек и т.п.). */
+  complectation: string[];
   created_at: string;
 }
 

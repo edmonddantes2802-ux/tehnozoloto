@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { X, Upload, Loader2, GripVertical, Sparkles, ClipboardPaste } from 'lucide-react';
 import { toast } from 'sonner';
 import { SpecsParserModal } from './SpecsParserModal';
+import { ComplectationPicker } from './ComplectationPicker';
 import type { SpecPair } from '@/lib/parse-specs';
 import { Input } from '@/components/shared/Input';
 import { Button } from '@/components/shared/Button';
@@ -55,14 +56,16 @@ export function ProductForm({ initial, action }: Props) {
   const [oldPrice, setOldPrice] = useState(initial?.old_price?.toString() ?? '');
   const [condition, setCondition] = useState(initial?.condition ?? 'good');
   const [isPublished, setIsPublished] = useState(initial?.is_published ?? true);
-  const [batteryHealth, setBatteryHealth] = useState(
-    initial?.battery_health?.toString() ?? ''
-  );
+  const [batteryHealth, setBatteryHealth] = useState(initial?.battery_health ?? '');
 
   const [specs, setSpecs] = useState<Array<[string, string]>>(
     initial?.specs
       ? Object.entries(initial.specs).map(([k, v]) => [k, String(v ?? '')])
       : []
+  );
+
+  const [complectation, setComplectation] = useState<string[]>(
+    initial?.complectation ?? []
   );
 
   const [images, setImages] = useState<string[]>(initial?.images ?? []);
@@ -216,6 +219,7 @@ export function ProductForm({ initial, action }: Props) {
     }
     fd.set('specs_json', JSON.stringify(specsObject));
     fd.set('images_json', JSON.stringify(images));
+    fd.set('complectation_json', JSON.stringify(complectation.filter((c) => c.trim())));
 
     startTransition(async () => {
       try {
@@ -363,17 +367,16 @@ export function ProductForm({ initial, action }: Props) {
       {showBattery && (
         <div>
           <Input
-            label="Состояние аккумулятора, %"
+            label="Состояние аккумулятора"
             name="battery_health"
-            type="number"
-            min="0"
-            max="100"
+            type="text"
             value={batteryHealth}
             onChange={(e) => setBatteryHealth(e.target.value)}
-            placeholder="например, 85"
+            placeholder="85%, или 500 циклов, или 10000 mAh из 19000 mAh"
           />
           <p className="mt-1 text-xs text-corporate-muted">
-            Пишется индивидуально для каждого экземпляра.
+            Свободная форма — впишите в любом удобном виде: процент,
+            количество циклов, остаточная ёмкость.
           </p>
         </div>
       )}
@@ -431,6 +434,13 @@ export function ProductForm({ initial, action }: Props) {
           ))}
         </div>
       </div>
+
+      {/* Complectation */}
+      <ComplectationPicker
+        category={category}
+        value={complectation}
+        onChange={setComplectation}
+      />
 
       {/* Photos */}
       <div>

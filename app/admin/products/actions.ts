@@ -25,9 +25,10 @@ interface ProductFormData {
   brand: string | null;
   condition: string;
   is_published: boolean;
-  battery_health: number | null;
+  battery_health: string | null;
   specs: ProductSpecs;
   images: string[];
+  complectation: string[];
 }
 
 function parseFormData(formData: FormData): ProductFormData {
@@ -43,7 +44,9 @@ function parseFormData(formData: FormData): ProductFormData {
   const is_published = formData.get('is_published') === 'on';
   const batteryRaw = formData.get('battery_health');
   const battery_health =
-    batteryRaw && String(batteryRaw).length > 0 ? Number(batteryRaw) : null;
+    typeof batteryRaw === 'string' && batteryRaw.trim().length > 0
+      ? batteryRaw.trim()
+      : null;
 
   // specs приходит как JSON-строка (заполняется на клиенте через скрытое поле)
   let specs: ProductSpecs = {};
@@ -68,6 +71,23 @@ function parseFormData(formData: FormData): ProductFormData {
     }
   }
 
+  // Комплектность — список строк (тоже JSON из клиента)
+  let complectation: string[] = [];
+  const complJson = formData.get('complectation_json');
+  if (typeof complJson === 'string' && complJson.length > 0) {
+    try {
+      const parsed = JSON.parse(complJson);
+      if (Array.isArray(parsed)) {
+        complectation = parsed
+          .filter((s) => typeof s === 'string')
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+    } catch {
+      complectation = [];
+    }
+  }
+
   return {
     id: (formData.get('id') as string) || undefined,
     title,
@@ -78,12 +98,10 @@ function parseFormData(formData: FormData): ProductFormData {
     brand,
     condition: VALID_CONDITIONS.includes(condition) ? condition : 'good',
     is_published,
-    battery_health:
-      battery_health !== null && battery_health >= 0 && battery_health <= 100
-        ? battery_health
-        : null,
+    battery_health,
     specs,
     images,
+    complectation,
   };
 }
 
@@ -109,6 +127,7 @@ export async function createProduct(formData: FormData) {
       battery_health: data.battery_health,
       specs: data.specs,
       images: data.images,
+      complectation: data.complectation,
     },
     true
   );
@@ -139,6 +158,7 @@ export async function updateProduct(formData: FormData) {
     battery_health: data.battery_health,
     specs: data.specs,
     images: data.images,
+    complectation: data.complectation,
   });
   if (!res.ok) {
     throw new Error('Не удалось сохранить товар: ' + (res.error ?? ''));

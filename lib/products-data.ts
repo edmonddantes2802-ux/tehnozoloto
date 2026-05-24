@@ -163,6 +163,7 @@ const TEST_PRODUCTS: ProductRow[] = Array.from({ length: 5 }, (_, i) => {
     is_published: true,
     specs: null,
     battery_health: null,
+    complectation: [],
     created_at: '',
   };
 });
@@ -184,6 +185,7 @@ export const PRODUCTS: ProductRow[] = [
       is_published: true,
       specs: null,
       battery_health: null,
+      complectation: [],
       created_at: '',
     };
   }),
