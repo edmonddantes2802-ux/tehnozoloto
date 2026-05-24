@@ -44,7 +44,7 @@ export function ProductGallery({
 
   if (total === 0) {
     return (
-      <div className="flex aspect-square w-full items-center justify-center rounded-card border border-corporate-border bg-corporate-bg text-corporate-muted">
+      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-card border border-corporate-border bg-corporate-bg text-corporate-muted">
         <Package size={64} strokeWidth={1.2} />
       </div>
     );
@@ -56,7 +56,7 @@ export function ProductGallery({
     <>
       <div className="space-y-3">
         <div
-          className="group relative aspect-square cursor-zoom-in overflow-hidden rounded-card border border-corporate-border bg-white"
+          className="group relative aspect-[4/3] cursor-zoom-in overflow-hidden rounded-card border border-corporate-border bg-white"
           onClick={() => setZoom(true)}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
