@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { adminInsert, isAdminConfigured } from '@/lib/supabase/rest';
 import { createPayment, isConfigured, YookassaError } from '@/lib/yookassa';
 import { notifyOrder } from '@/lib/telegram';
 
@@ -41,37 +41,31 @@ export async function POST(req: NextRequest) {
     }
     const { customer, items, delivery, total } = parsed.data;
 
-    // Best-effort сохранение заказа в Supabase через admin (service_role)
-    // клиента — он обходит RLS, что позволяет и записать, и сразу вернуть id
-    // без отдельной SELECT-политики. Если Supabase не настроен или упал —
-    // заказ всё равно создаётся в ЮKassa, чтобы клиент мог оплатить.
+    // Best-effort сохранение заказа в Supabase через прямой REST с service_role
+    // ключом — обходит RLS, позволяет получить id для метаданных платежа.
+    // Если Supabase не настроен — заказ всё равно создаётся в ЮKassa.
     let orderId: string | null = null;
-    try {
-      const admin = createSupabaseAdminClient();
-      if (admin) {
-        const { data, error } = await admin
-          .from('orders' as never)
-          .insert({
-            customer_name: customer.full_name,
-            customer_phone: customer.phone,
-            customer_email: customer.email ?? null,
-            delivery_method: delivery,
-            items: items as unknown,
-            total,
-            status: 'pending',
-          } as never)
-          .select('id')
-          .single();
-        if (error) {
-          console.error('[orders.create] supabase insert failed', error);
-        } else if (data) {
-          orderId = (data as { id: string }).id;
-        }
-      } else {
-        console.warn('[orders.create] SUPABASE_SERVICE_ROLE_KEY not set — order not persisted');
+    if (isAdminConfigured()) {
+      const insertRes = await adminInsert<{ id: string }>(
+        'orders',
+        {
+          customer_name: customer.full_name,
+          customer_phone: customer.phone,
+          customer_email: customer.email ?? null,
+          delivery_method: delivery,
+          items,
+          total,
+          status: 'pending',
+        },
+        true // return inserted row
+      );
+      if (insertRes.ok && insertRes.row) {
+        orderId = insertRes.row.id;
       }
-    } catch (e) {
-      console.error('[orders.create] supabase unavailable', e);
+    } else {
+      console.warn(
+        '[orders.create] SUPABASE_SERVICE_ROLE_KEY not set — order not persisted'
+      );
     }
 
     const siteUrl =

@@ -1,5 +1,9 @@
 import { revalidatePath } from 'next/cache';
-import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import {
+  adminSelect,
+  adminUpdate,
+  isAdminConfigured,
+} from '@/lib/supabase/rest';
 import { formatRub } from '@/lib/utils';
 import { AdminPriceRow } from './AdminPriceRow';
 import { AdminMarkSoldButton } from './AdminMarkSoldButton';
@@ -41,46 +45,39 @@ const statusBadge: Record<string, string> = {
 export const dynamic = 'force-dynamic';
 
 async function loadData() {
-  const admin = createSupabaseAdminClient();
-  if (!admin) {
+  if (!isAdminConfigured()) {
     return { prices: [], leads: [], orders: [], configured: false };
   }
-  const [pricesRes, leadsRes, ordersRes] = await Promise.all([
-    admin.from('gold_prices').select('*').order('karat'),
-    admin.from('leads').select('*').order('created_at', { ascending: false }).limit(50),
-    admin.from('orders' as never).select('*').order('created_at', { ascending: false }).limit(50),
+  const [prices, leads, orders] = await Promise.all([
+    adminSelect<GoldPriceRow>('gold_prices', 'select=*&order=karat'),
+    adminSelect<LeadRow>('leads', 'select=*&order=created_at.desc&limit=50'),
+    adminSelect<OrderRow>('orders', 'select=*&order=created_at.desc&limit=50'),
   ]);
-  return {
-    prices: (pricesRes.data as GoldPriceRow[]) ?? [],
-    leads: (leadsRes.data as LeadRow[]) ?? [],
-    orders: (ordersRes.data as unknown as OrderRow[]) ?? [],
-    configured: true,
-  };
+  return { prices, leads, orders, configured: true };
 }
 
 async function updatePriceAction(formData: FormData) {
   'use server';
   const id = Number(formData.get('id'));
   const pricePerGram = Number(formData.get('price'));
-  const admin = createSupabaseAdminClient();
-  if (!admin) return;
-  await admin
-    .from('gold_prices')
-    .update({ price_per_gram: pricePerGram, updated_at: new Date().toISOString() } as never)
-    .eq('id', id);
+  await adminUpdate('gold_prices', `id=eq.${id}`, {
+    price_per_gram: pricePerGram,
+    updated_at: new Date().toISOString(),
+  });
   revalidatePath('/admin');
 }
 
 async function markSoldAction(formData: FormData) {
   'use server';
-  const ids = String(formData.get('product_ids') ?? '').split(',').filter(Boolean);
+  const ids = String(formData.get('product_ids') ?? '')
+    .split(',')
+    .filter(Boolean);
   if (ids.length === 0) return;
-  const admin = createSupabaseAdminClient();
-  if (!admin) return;
-  await admin
-    .from('products' as never)
-    .update({ is_sold: true } as never)
-    .in('id', ids);
+  await adminUpdate(
+    'products',
+    `id=in.(${ids.map(encodeURIComponent).join(',')})`,
+    { is_sold: true }
+  );
   revalidatePath('/admin');
   revalidatePath('/');
   revalidatePath('/catalog');
@@ -90,15 +87,10 @@ async function setOrderStatusAction(formData: FormData) {
   'use server';
   const id = String(formData.get('order_id'));
   const status = String(formData.get('status'));
-  const admin = createSupabaseAdminClient();
-  if (!admin) return;
-  await admin
-    .from('orders' as never)
-    .update({
-      status,
-      paid_at: status === 'paid' ? new Date().toISOString() : null,
-    } as never)
-    .eq('id', id);
+  await adminUpdate('orders', `id=eq.${encodeURIComponent(id)}`, {
+    status,
+    paid_at: status === 'paid' ? new Date().toISOString() : null,
+  });
   revalidatePath('/admin');
 }
 

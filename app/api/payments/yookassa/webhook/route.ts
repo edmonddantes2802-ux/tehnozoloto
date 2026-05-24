@@ -1,16 +1,19 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { adminSelect, adminUpdate, isAdminConfigured } from '@/lib/supabase/rest';
 import { isConfigured } from '@/lib/yookassa';
 
 // ЮKassa отправляет уведомления о статусе платежа на этот URL.
 // В ЛК ЮKassa: Интеграция → HTTP-уведомления → URL вашего сайта/api/payments/yookassa/webhook
 //
-// Дополнительно ЮKassa подписывает запросы по IP — белый список IP лежит здесь:
-// https://yookassa.ru/developers/using-api/webhooks#ip
-// Сейчас IP-проверку не добавлял — добавьте до прода, если нужно.
+// IP-whitelist ЮKassa: https://yookassa.ru/developers/using-api/webhooks#ip
+// Проверку IP сейчас не добавлял — добавьте до прода.
 
 interface WebhookEvent {
-  event: 'payment.succeeded' | 'payment.canceled' | 'payment.waiting_for_capture' | 'refund.succeeded';
+  event:
+    | 'payment.succeeded'
+    | 'payment.canceled'
+    | 'payment.waiting_for_capture'
+    | 'refund.succeeded';
   object: {
     id: string;
     status: string;
@@ -20,9 +23,21 @@ interface WebhookEvent {
   };
 }
 
+interface OrderItemRow {
+  product_id?: string;
+}
+
+interface OrderRow {
+  items: OrderItemRow[];
+}
+
 export async function POST(req: NextRequest) {
   if (!isConfigured()) {
     return NextResponse.json({ error: 'yookassa not configured' }, { status: 503 });
+  }
+  if (!isAdminConfigured()) {
+    console.warn('[yookassa.webhook] SUPABASE_SERVICE_ROLE_KEY not set');
+    return NextResponse.json({ ok: true });
   }
 
   try {
@@ -40,46 +55,30 @@ export async function POST(req: NextRequest) {
         ? 'cancelled'
         : 'pending';
 
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
-      console.warn('[yookassa.webhook] SUPABASE_SERVICE_ROLE_KEY not set — skip DB updates');
-      return NextResponse.json({ ok: true });
-    }
+    // 1. Обновляем сам заказ
+    await adminUpdate('orders', `id=eq.${encodeURIComponent(orderId)}`, {
+      status,
+      payment_id: evt.object.id,
+      paid_at: evt.event === 'payment.succeeded' ? new Date().toISOString() : null,
+    });
 
-    try {
-      // 1. Обновляем сам заказ
-      const { data: updated, error: updateErr } = await admin
-        .from('orders' as never)
-        .update({
-          status,
-          payment_id: evt.object.id,
-          paid_at:
-            evt.event === 'payment.succeeded' ? new Date().toISOString() : null,
-        } as never)
-        .eq('id', orderId)
-        .select('items')
-        .single();
-
-      if (updateErr) {
-        console.error('[yookassa.webhook] order update failed', updateErr);
+    // 2. Если оплачено — снимаем все товары заказа с витрины
+    if (evt.event === 'payment.succeeded') {
+      const orders = await adminSelect<OrderRow>(
+        'orders',
+        `id=eq.${encodeURIComponent(orderId)}&select=items`
+      );
+      const items = orders[0]?.items ?? [];
+      const productIds = items
+        .map((i) => i.product_id)
+        .filter((id): id is string => !!id);
+      if (productIds.length > 0) {
+        await adminUpdate(
+          'products',
+          `id=in.(${productIds.map(encodeURIComponent).join(',')})`,
+          { is_sold: true }
+        );
       }
-
-      // 2. Если оплачено — снимаем все товары заказа с витрины
-      if (evt.event === 'payment.succeeded' && updated) {
-        const items = (updated as { items: { product_id: string }[] }).items ?? [];
-        const productIds = items.map((i) => i.product_id).filter(Boolean);
-        if (productIds.length > 0) {
-          const { error: soldErr } = await admin
-            .from('products' as never)
-            .update({ is_sold: true } as never)
-            .in('id', productIds);
-          if (soldErr) {
-            console.error('[yookassa.webhook] mark sold failed', soldErr);
-          }
-        }
-      }
-    } catch (e) {
-      console.error('[yookassa.webhook] db update failed', e);
     }
 
     return NextResponse.json({ ok: true });

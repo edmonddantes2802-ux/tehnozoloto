@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { adminInsert, isAdminConfigured } from '@/lib/supabase/rest';
 import { leadSchema } from '@/lib/validators';
 import { notifyLead } from '@/lib/telegram';
 
@@ -53,14 +53,13 @@ export async function POST(req: NextRequest) {
       details: parsed.data.details ?? null,
     }).catch((e) => console.error('[leads:telegram]', e));
 
-    const admin = createSupabaseAdminClient();
-    if (!admin) {
+    if (!isAdminConfigured()) {
       console.warn('[leads.insert] SUPABASE_SERVICE_ROLE_KEY not set — lead not persisted');
       // Не блокируем пользователя: лид всё равно дойдёт через Telegram
       return NextResponse.json({ ok: true, persisted: false });
     }
 
-    const { error } = await admin.from('leads').insert({
+    const insertRes = await adminInsert('leads', {
       full_name: parsed.data.full_name,
       phone: parsed.data.phone,
       category: parsed.data.category,
@@ -70,10 +69,9 @@ export async function POST(req: NextRequest) {
       utm_medium: parsed.data.utm_medium ?? null,
       utm_campaign: parsed.data.utm_campaign ?? null,
       user_id: null,
-    } as never);
+    });
 
-    if (error) {
-      console.error('[leads.insert]', error);
+    if (!insertRes.ok) {
       return NextResponse.json(
         { error: 'Сервис временно недоступен. Мы уже чиним.' },
         { status: 500 }
