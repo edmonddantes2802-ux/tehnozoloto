@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D4AF37"/>
+      <stop offset="50%" stop-color="#F1D592"/>
+      <stop offset="100%" stop-color="#B8962E"/>
+    </linearGradient>
+  </defs>
+  <!-- Фон-плашка (iOS закругляет углы автоматически) -->
+  <rect width="180" height="180" fill="#1A2B3C"/>
+  <!-- Золотой ромб -->
+  <rect x="40" y="40" width="100" height="100" rx="14"
+        transform="rotate(45 90 90)" fill="url(#g)"/>
+  <!-- Diamond контур внутри -->
+  <path
+    transform="translate(54 54) scale(3)"
+    d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41L13.7 2.71a2.41 2.41 0 0 0-3.41 0z"
+    fill="none" stroke="#ffffff" stroke-width="1.8"
+    stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
