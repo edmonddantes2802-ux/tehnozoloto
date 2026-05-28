@@ -1,13 +1,44 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ShieldCheck, Wallet, Lock } from 'lucide-react';
+import {
+  ShieldCheck,
+  Wallet,
+  Lock,
+  Gem,
+  Coins,
+  Smartphone,
+  Laptop,
+  Tv,
+  Speaker,
+  Tablet,
+  Camera,
+  Watch,
+  Crown,
+  Dumbbell,
+  Wrench,
+} from 'lucide-react';
 import { Button } from '@/components/shared/Button';
 
 const bullets = [
   { icon: ShieldCheck, text: 'Честная оценка по рыночным курсам' },
   { icon: Wallet, text: 'Выплата наличными или на карту' },
   { icon: Lock, text: 'Полная конфиденциальность сделки' },
+];
+
+const accepted = [
+  { icon: Gem, label: 'Золото и лом' },
+  { icon: Coins, label: 'Серебро' },
+  { icon: Smartphone, label: 'Смартфоны' },
+  { icon: Laptop, label: 'Ноутбуки и ПК' },
+  { icon: Tv, label: 'ТВ и приставки' },
+  { icon: Speaker, label: 'Аудиотехника' },
+  { icon: Tablet, label: 'Планшеты и гаджеты' },
+  { icon: Camera, label: 'Фото и видео' },
+  { icon: Watch, label: 'Часы' },
+  { icon: Crown, label: 'Антиквариат' },
+  { icon: Dumbbell, label: 'Спортинвентарь' },
+  { icon: Wrench, label: 'Электроинструмент' },
 ];
 
 export function Hero() {
@@ -61,26 +92,26 @@ export function Hero() {
           className="relative"
         >
           <div className="rounded-card bg-gradient-to-br from-primary to-corporate-dark p-8 text-white shadow-card-hover">
-            <div className="mb-6 text-sm uppercase tracking-wider text-gold">
-              Сегодня в 14:00
+            <div className="mb-1 text-sm uppercase tracking-wider text-gold">
+              Что мы принимаем
             </div>
-            <div className="mb-2 text-sm text-white/60">Цена золота 585 пробы</div>
-            <div className="mb-6 text-5xl font-bold gold-text">3 500 ₽ / грамм</div>
-            <div className="mb-6 h-px bg-white/10" />
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-3xl font-bold text-gold">15</div>
-                <div className="text-xs text-white/60">минут на сделку</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gold">95%</div>
-                <div className="text-xs text-white/60">от рыночной цены</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gold">10+</div>
-                <div className="text-xs text-white/60">лет опыта</div>
-              </div>
+            <div className="mb-6 text-2xl font-bold">
+              Техника, золото <span className="gold-text">и ценности</span>
             </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+              {accepted.map(({ icon: Icon, label }) => (
+                <div key={label} className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-corp bg-gold/10 text-gold">
+                    <Icon size={18} />
+                  </span>
+                  <span className="text-sm font-medium text-white/90">{label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 h-px bg-white/10" />
+            <p className="mt-4 text-sm text-white/60">
+              И другие ценности — оценим индивидуально
+            </p>
           </div>
         </motion.div>
       </div>
