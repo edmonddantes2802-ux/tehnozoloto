@@ -1,23 +1,15 @@
 import type { Karat, TechCondition } from '@/types';
 
-export const GOLD_PROMO_DISCOUNT = 0.1; // OPEN10
-
 export const CONDITION_COEFFICIENT: Record<TechCondition, number> = {
   excellent: 0.85,
   good: 0.7,
   defective: 0.4,
 };
 
-/** Вес в граммах * цена за грамм * (1 - скидка). */
-export function calcGoldPrice(
-  weight: number,
-  pricePerGram: number,
-  promoApplied = false
-): number {
+/** Вес в граммах * цена за грамм. */
+export function calcGoldPrice(weight: number, pricePerGram: number): number {
   if (!isFinite(weight) || !isFinite(pricePerGram) || weight <= 0) return 0;
-  const base = weight * pricePerGram;
-  const discounted = promoApplied ? base * (1 - GOLD_PROMO_DISCOUNT) : base;
-  return Math.round(discounted);
+  return Math.round(weight * pricePerGram);
 }
 
 /** Базовая рыночная цена модели * коэффициент состояния. */

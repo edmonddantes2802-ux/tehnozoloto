@@ -55,6 +55,8 @@ export function FAQSection() {
                 <button
                   type="button"
                   onClick={() => setOpenIdx(open ? null : i)}
+                  aria-expanded={open}
+                  aria-controls={`faq-panel-${i}`}
                   className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left font-semibold text-corporate-dark"
                 >
                   <span>{f.q}</span>
@@ -69,6 +71,7 @@ export function FAQSection() {
                 <AnimatePresence initial={false}>
                   {open && (
                     <motion.div
+                      id={`faq-panel-${i}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}

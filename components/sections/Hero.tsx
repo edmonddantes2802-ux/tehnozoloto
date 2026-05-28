@@ -50,9 +50,6 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         >
-          <span className="mb-4 inline-block rounded-corp bg-gold/10 px-3 py-1 text-sm font-semibold text-gold-dark">
-            🔥 Скидка 10% на комиссию в честь открытия
-          </span>
           <h1 className="mb-5">
             Деньги за 15 минут{' '}
             <span className="gold-text">под залог или выкуп</span> техники и золота
@@ -109,7 +106,7 @@ export function Hero() {
               ))}
             </div>
             <div className="mt-6 h-px bg-white/10" />
-            <p className="mt-4 text-sm text-white/60">
+            <p className="mt-4 text-sm text-white/70">
               И другие ценности — оценим индивидуально
             </p>
           </div>

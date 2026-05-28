@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Button } from '@/components/shared/Button';
 import { LEGAL } from '@/lib/legal';
 
@@ -14,6 +15,8 @@ export default function PaymentSuccessPage({
   searchParams: { order?: string };
 }) {
   const order = searchParams.order;
+  // Без номера заказа страница «успешной оплаты» не должна открываться напрямую.
+  if (!order) redirect('/');
   return (
     <div className="bg-corporate-bg py-16">
       <div className="container-corp max-w-xl text-center">

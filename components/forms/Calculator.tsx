@@ -148,8 +148,18 @@ export function Calculator() {
                     min={0.01}
                     max={1000}
                     step={0.01}
-                    value={weight}
-                    onChange={(e) => setWeight(Number(e.target.value) || 0)}
+                    inputMode="decimal"
+                    placeholder="напр. 5"
+                    value={weight === 0 ? '' : weight}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === '') {
+                        setWeight(0);
+                        return;
+                      }
+                      const n = Number(v);
+                      setWeight(Number.isFinite(n) ? n : 0);
+                    }}
                   />
                   <div className="rounded-corp bg-corporate-bg p-4 text-sm text-corporate-gray">
                     Цена за грамм <b className="text-gold-dark">{getPrice(karat)} ₽</b> по текущему курсу.

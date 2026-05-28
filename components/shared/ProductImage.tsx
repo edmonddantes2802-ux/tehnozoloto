@@ -23,6 +23,7 @@ interface Props {
 export function ProductImage({ productId, fallbackUrl, alt, className }: Props) {
   const [src, setSrc] = useState(`/products/${productId}.jpg`);
   const [broken, setBroken] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   if (broken) {
     return (
@@ -40,19 +41,31 @@ export function ProductImage({ productId, fallbackUrl, alt, className }: Props) 
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={alt}
-      loading="lazy"
-      onError={() => {
-        if (src !== fallbackUrl) {
-          setSrc(fallbackUrl);
-        } else {
-          setBroken(true);
-        }
-      }}
-      className={cn('h-full w-full object-cover', className)}
-    />
+    <>
+      {/* Скелетон, пока фото грузится (внешние фото могут отдаваться медленно) */}
+      {!loaded && (
+        <div className="absolute inset-0 animate-pulse bg-corporate-border/30" />
+      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={() => {
+          if (src !== fallbackUrl) {
+            setSrc(fallbackUrl);
+          } else {
+            setBroken(true);
+          }
+        }}
+        className={cn(
+          'h-full w-full object-cover transition-opacity duration-300',
+          loaded ? 'opacity-100' : 'opacity-0',
+          className
+        )}
+      />
+    </>
   );
 }

@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MapPin, Phone, Clock, BadgeCheck } from 'lucide-react';
-import { adminSelect, isAdminConfigured } from '@/lib/supabase/rest';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { PRODUCTS } from '@/lib/products-data';
 import { Button } from '@/components/shared/Button';
 import { AddToCartButton } from '@/components/forms/AddToCartButton';
 import { formatRub } from '@/lib/utils';
@@ -22,14 +23,23 @@ const CONDITION_LABEL: Record<string, string> = {
 };
 
 async function loadProduct(id: string): Promise<ProductRow | null> {
-  if (!isAdminConfigured()) return null;
-  // Тут можно было бы использовать anon-ключ с RLS, но проще через admin —
-  // мы и так серверный код, страница динамическая.
-  const rows = await adminSelect<ProductRow>(
-    'products',
-    `id=eq.${encodeURIComponent(id)}&limit=1`
-  );
-  const p = rows[0];
+  // Грузим тем же anon-клиентом (RLS), что и список каталога, чтобы карточка
+  // и список вели себя одинаково.
+  try {
+    const supabase = createSupabaseServerClient();
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .eq('is_sold', false)
+      .eq('is_published', true)
+      .limit(1);
+    if (data && data.length > 0) return data[0] as ProductRow;
+  } catch {
+    // ниже — фолбэк на статический каталог
+  }
+  // Фолбэк на статический каталог (когда БД недоступна/пуста — как в списке).
+  const p = PRODUCTS.find((x) => x.id === id);
   if (!p || p.is_sold || !p.is_published) return null;
   return p;
 }

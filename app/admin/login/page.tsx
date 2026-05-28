@@ -56,7 +56,7 @@ function AdminLoginForm() {
       </div>
       <h1 className="text-center text-2xl">Вход в админ-панель</h1>
       <p className="text-center text-sm text-corporate-gray">
-        Тестовая учётка для демо: <code>admin</code> / <code>demo123</code>
+        Доступ только для сотрудников магазина.
       </p>
       <Input
         label="Логин"

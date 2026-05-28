@@ -153,7 +153,7 @@ export function LeadForm({ category, estimatedValue, details }: Props) {
         />
         <span>
           Соглашаюсь на обработку персональных данных в соответствии с{' '}
-          <a href="#" className="text-gold hover:underline">
+          <a href="/privacy" target="_blank" className="text-gold hover:underline">
             политикой конфиденциальности
           </a>
           .

@@ -11,14 +11,12 @@ interface CalculatorState {
   techCategory: TechCategoryKey;
   model: string;
   condition: TechCondition;
-  promoApplied: boolean;
   setTab: (tab: CalculatorTab) => void;
   setKarat: (k: Karat) => void;
   setWeight: (w: number) => void;
   setTechCategory: (c: TechCategoryKey) => void;
   setModel: (m: string) => void;
   setCondition: (c: TechCondition) => void;
-  setPromoApplied: (v: boolean) => void;
 }
 
 export const useCalculatorStore = create<CalculatorState>((set) => ({
@@ -28,12 +26,10 @@ export const useCalculatorStore = create<CalculatorState>((set) => ({
   techCategory: 'smartphone',
   model: 'iPhone 13',
   condition: 'good',
-  promoApplied: true,
   setTab: (tab) => set({ tab }),
   setKarat: (karat) => set({ karat }),
   setWeight: (weight) => set({ weight }),
   setTechCategory: (techCategory) => set({ techCategory }),
   setModel: (model) => set({ model }),
   setCondition: (condition) => set({ condition }),
-  setPromoApplied: (promoApplied) => set({ promoApplied }),
 }));
