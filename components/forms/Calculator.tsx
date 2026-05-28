@@ -28,9 +28,16 @@ const conditions: { value: TechCondition; label: string; desc: string }[] = [
 const categoryIcons: Record<TechCategoryKey, string> = {
   smartphone: '📱',
   laptop: '💻',
-  tablet: '📱',
+  tablet: '📲',
+  tv: '📺',
   console: '🎮',
-  other: '🎧',
+  audio: '🎧',
+  photo: '📷',
+  watch: '⌚',
+  antique: '🏺',
+  sport: '🏋️',
+  tools: '🔧',
+  other: '📦',
 };
 
 export function Calculator() {
@@ -41,7 +48,6 @@ export function Calculator() {
     techCategory, setTechCategory,
     model, setModel,
     condition, setCondition,
-    promoApplied,
   } = useCalculatorStore();
 
   const { getPrice } = useGoldPrices();
@@ -67,10 +73,10 @@ export function Calculator() {
 
   const result = useMemo(() => {
     if (tab === 'gold') {
-      return calcGoldPrice(weight, getPrice(karat), promoApplied);
+      return calcGoldPrice(weight, getPrice(karat));
     }
     return calcTechPrice(lookupBasePrice(model), condition);
-  }, [tab, karat, weight, model, condition, promoApplied, getPrice]);
+  }, [tab, karat, weight, model, condition, getPrice]);
 
   return (
     <section id="calculator" className="section bg-gradient-to-b from-corporate-bg to-white">
@@ -146,8 +152,7 @@ export function Calculator() {
                     onChange={(e) => setWeight(Number(e.target.value) || 0)}
                   />
                   <div className="rounded-corp bg-corporate-bg p-4 text-sm text-corporate-gray">
-                    Цена за грамм <b className="text-gold-dark">{getPrice(karat)} ₽</b>.
-                    Скидка 10% по акции «OPEN10» применяется автоматически.
+                    Цена за грамм <b className="text-gold-dark">{getPrice(karat)} ₽</b> по текущему курсу.
                   </div>
                 </motion.div>
               ) : (
@@ -161,7 +166,7 @@ export function Calculator() {
                 >
                   <div>
                     <label className="mb-2 block text-sm font-medium">Категория</label>
-                    <div className="grid grid-cols-5 gap-2">
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                       {(Object.keys(TECH_CATALOG) as TechCategoryKey[]).map((k) => (
                         <button
                           key={k}
